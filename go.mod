@@ -2,6 +2,7 @@ module github.com/flashmob/go-guerrilla
 
 require (
 	github.com/asaskevich/EventBus v0.0.0-20180103000110-68a521d7cbbb
+	github.com/elastic/go-elasticsearch/v7 v7.6.0
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/inconshreveable/mousetrap v1.0.0
