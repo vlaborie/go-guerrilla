@@ -52,8 +52,6 @@ type ElasticsearchEnvelope struct {
     TLS bool `json:"tls"`
     // Header stores the results from ParseHeaders()
     Header textproto.MIMEHeader `json:"header"`
-    // additional delivery header that may be added
-    DeliveryHeader string `json:"delivery_header"`
     // Email(s) will be queued with this id
     QueuedId string `json:"queue_id"`
     // ESMTP: true if EHLO was used
@@ -110,7 +108,6 @@ func Elasticsearch() Decorator {
                         Subject: e.Subject,
                         TLS: e.TLS,
                         Header: e.Header,
-                        DeliveryHeader: e.DeliveryHeader,
                         QueuedId: e.QueuedId,
                         ESMTP: e.ESMTP,
                     }
