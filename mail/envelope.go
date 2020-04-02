@@ -34,23 +34,23 @@ const maxHeaderChunk = 1 + (4 << 10) // 4KB
 // Address encodes an email address of the form `<user@host>`
 type Address struct {
 	// User is local part
-	User string
+	User string `json:"user"`
 	// Host is the domain
-	Host string
+	Host string `json:"host"`
 	// ADL is at-domain list if matched
-	ADL []string
+	ADL []string `json:"adl"`
 	// PathParams contains any ESTMP parameters that were matched
-	PathParams [][]string
+	PathParams [][]string `json:"path_params"`
 	// NullPath is true if <> was received
-	NullPath bool
+	NullPath bool `json:"null_path"`
 	// Quoted indicates if the local-part needs quotes
-	Quoted bool
+	Quoted bool `json:"quoted"`
 	// IP stores the IP Address, if the Host is an IP
-	IP net.IP
+	IP net.IP `json:"ip"`
 	// DisplayName is a label before the address (RFC5322)
-	DisplayName string
+	DisplayName string `json:"display_name"`
 	// DisplayNameQuoted is true when DisplayName was quoted
-	DisplayNameQuoted bool
+	DisplayNameQuoted bool `json:"display_name_quoted"`
 }
 
 func (a *Address) String() string {
