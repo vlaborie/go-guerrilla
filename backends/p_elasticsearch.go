@@ -1,3 +1,5 @@
+// +build full elasticsearch
+
 package backends
 
 import (
