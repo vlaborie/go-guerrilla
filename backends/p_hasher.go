@@ -1,3 +1,5 @@
+// +build default full hasher
+
 package backends
 
 import (

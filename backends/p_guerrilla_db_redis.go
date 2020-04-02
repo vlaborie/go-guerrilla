@@ -1,3 +1,5 @@
+// +build full guerrilla_db_redis
+
 package backends
 
 import (

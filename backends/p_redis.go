@@ -1,3 +1,5 @@
+// +build full redis
+
 package backends
 
 import (

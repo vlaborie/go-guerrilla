@@ -1,3 +1,5 @@
+// +build default full compressor
+
 package backends
 
 import (

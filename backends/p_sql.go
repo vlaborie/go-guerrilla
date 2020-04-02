@@ -1,3 +1,5 @@
+// +build full sql
+
 package backends
 
 import (
