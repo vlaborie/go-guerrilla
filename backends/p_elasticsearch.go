@@ -23,7 +23,8 @@ import (
 //               : Split e into multiples elements (one by recipient) before upload
 // ----------------------------------------------------------------------------------
 // Config Options: none for now, use only default settings from elastic/go-elasticsearch
- --------------:-------------------------------------------------------------------
+//               :
+// --------------:-------------------------------------------------------------------
 // Input         : e
 // ----------------------------------------------------------------------------------
 // Output        :
@@ -34,20 +35,15 @@ func init() {
     }
 }
 
-type ElasticsearchAddress struct {
-    User string `json:"user"`
-    Domain string `json:"domain"`
-}
-
 type ElasticsearchEnvelope struct {
     // Remote IP address
     RemoteIP string `json:"remote_ip"`
     // Message sent in EHLO command
     Helo string `json:"helo"`
     // Sender
-    MailFrom ElasticsearchAddress `json:"from"`
+    MailFrom mail.Address `json:"from"`
     // Recipients
-    RcptTo ElasticsearchAddress `json:"recipient"`
+    RcptTo mail.Address `json:"recipient"`
     // Data stores the header and message body
     Data string `json:"data"`
     // Subject stores the subject of the email, extracted and decoded after calling ParseHeaders()
@@ -104,21 +100,12 @@ func Elasticsearch() Decorator {
         return ProcessWith(func(e *mail.Envelope, task SelectTask) (Result, error) {
             if task == TaskSaveMail {
                 for i, _ := range e.RcptTo {
-                    var from = ElasticsearchAddress {
-                        User: e.MailFrom.User,
-                        Domain: e.MailFrom.Host,
-                    }
-                    var recipient = ElasticsearchAddress {
-                        User: e.RcptTo[i].User,
-                        Domain: e.RcptTo[i].Host,
-                    }
-
                     // Create ElasticsearchEnvelope from mail.Envelope
                     var ElasticsearchEnvelope = ElasticsearchEnvelope {
                         RemoteIP: e.RemoteIP,
                         Helo: e.Helo,
-                        MailFrom: from,
-                        RcptTo: recipient,
+                        MailFrom: e.MailFrom,
+                        RcptTo: e.RcptTo[i],
                         Data: e.Data.String(),
                         Subject: e.Subject,
                         TLS: e.TLS,
