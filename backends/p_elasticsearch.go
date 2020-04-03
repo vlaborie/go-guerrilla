@@ -81,12 +81,15 @@ func Elasticsearch() Decorator {
     return func(p Processor) Processor {
         return ProcessWith(func(e *mail.Envelope, task SelectTask) (Result, error) {
             if task == TaskSaveMail {
+                buf := e.Data.Bytes()
+                headerEnd := bytes.Index(buf, []byte{'\n', '\n'})
+                body := buf[headerEnd+2 : ]
                 for i, _ := range e.RcptTo {
                     // Create ElasticsearchEnvelope from mail.Envelope
                     ElasticsearchEnvelope := ElasticsearchEnvelope{
                         Envelope: e,
                         Recipient: e.RcptTo[i],
-                        Body: e.Data.String(),
+                        Body: string(body),
                     }
 
                     // prepare Elasticsearch request
