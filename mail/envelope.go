@@ -122,31 +122,31 @@ func NewAddress(str string) (*Address, error) {
 // Envelope of Email represents a single SMTP message.
 type Envelope struct {
 	// Remote IP address
-	RemoteIP string
+	RemoteIP string `json:"remote_ip"`
 	// Message sent in EHLO command
-	Helo string
+	Helo string `json:"helo"`
 	// Sender
-	MailFrom Address
+	MailFrom Address `json:"from"`
 	// Recipients
-	RcptTo []Address
+	RcptTo []Address `json:"recipients"`
 	// Data stores the header and message body
-	Data bytes.Buffer
+	Data bytes.Buffer `json:"-"`
 	// Subject stores the subject of the email, extracted and decoded after calling ParseHeaders()
-	Subject string
+	Subject string `json:"subject"`
 	// TLS is true if the email was received using a TLS connection
-	TLS bool
+	TLS bool `json:"tls"`
 	// Header stores the results from ParseHeaders()
-	Header textproto.MIMEHeader
+	Header textproto.MIMEHeader `json:"header"`
 	// Values hold the values generated when processing the envelope by the backend
-	Values map[string]interface{}
+	Values map[string]interface{} `json:"-"`
 	// Hashes of each email on the rcpt
-	Hashes []string
+	Hashes []string `json:"hashes"`
 	// additional delivery header that may be added
-	DeliveryHeader string
+	DeliveryHeader string `json:"delivery_header"`
 	// Email(s) will be queued with this id
-	QueuedId string
+	QueuedId string `json:"queue_id"`
 	// ESMTP: true if EHLO was used
-	ESMTP bool
+	ESMTP bool `json:"esmtp"`
 	// When locked, it means that the envelope is being processed by the backend
 	sync.Mutex
 }
