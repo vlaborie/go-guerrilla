@@ -6,7 +6,6 @@ import (
     "fmt"
     "bytes"
     "context"
-    "net/textproto"
     "encoding/json"
 
     "github.com/flashmob/go-guerrilla/mail"
@@ -36,26 +35,11 @@ func init() {
 }
 
 type ElasticsearchEnvelope struct {
-    // Remote IP address
-    RemoteIP string `json:"remote_ip"`
-    // Message sent in EHLO command
-    Helo string `json:"helo"`
-    // Sender
-    MailFrom mail.Address `json:"from"`
-    // Recipients
-    RcptTo mail.Address `json:"recipient"`
-    // Data stores the header and message body
-    Data string `json:"data"`
-    // Subject stores the subject of the email, extracted and decoded after calling ParseHeaders()
-    Subject string `json:"subject"`
-    // TLS is true if the email was received using a TLS connection
-    TLS bool `json:"tls"`
-    // Header stores the results from ParseHeaders()
-    Header textproto.MIMEHeader `json:"header"`
-    // Email(s) will be queued with this id
-    QueuedId string `json:"queue_id"`
-    // ESMTP: true if EHLO was used
-    ESMTP bool `json:"esmtp"`
+    *mail.Envelope
+    // Recipient
+    Recipient mail.Address `json:"recipient"`
+    // Body stores message body
+    Body string `json:"body"`
 }
 
 type ElasticsearchProcessor struct {
@@ -99,17 +83,10 @@ func Elasticsearch() Decorator {
             if task == TaskSaveMail {
                 for i, _ := range e.RcptTo {
                     // Create ElasticsearchEnvelope from mail.Envelope
-                    var ElasticsearchEnvelope = ElasticsearchEnvelope {
-                        RemoteIP: e.RemoteIP,
-                        Helo: e.Helo,
-                        MailFrom: e.MailFrom,
-                        RcptTo: e.RcptTo[i],
-                        Data: e.Data.String(),
-                        Subject: e.Subject,
-                        TLS: e.TLS,
-                        Header: e.Header,
-                        QueuedId: e.QueuedId,
-                        ESMTP: e.ESMTP,
+                    ElasticsearchEnvelope := ElasticsearchEnvelope{
+                        Envelope: e,
+                        Recipient: e.RcptTo[i],
+                        Body: e.Data.String(),
                     }
 
                     // prepare Elasticsearch request
