@@ -29,7 +29,7 @@ func init() {
 	Dec = mime.WordDecoder{}
 }
 
-const maxHeaderChunk = 1 + (4 << 10) // 4KB
+const maxHeaderChunk = 1 + (32 << 10) // 32KB
 
 // Address encodes an email address of the form `<user@host>`
 type Address struct {
@@ -119,6 +119,15 @@ func NewAddress(str string) (*Address, error) {
 	return a, nil
 }
 
+type Attachment struct {
+	// Data stores the header and message body
+        Data string `json:"data"`
+	// Header stores the results from ParseHeaders()
+        Header textproto.MIMEHeader `json:"header"`
+	// Attachment can have sub attachments
+	Attachments []Attachment `json:"attachments"`
+}
+
 // Envelope of Email represents a single SMTP message.
 type Envelope struct {
 	// Remote IP address
@@ -131,6 +140,8 @@ type Envelope struct {
 	RcptTo []Address `json:"recipients"`
 	// Data stores the header and message body
 	Data bytes.Buffer `json:"-"`
+	//Attachments stores each attachment with their headers
+	Attachments []Attachment `json:"attachments"`
 	// Subject stores the subject of the email, extracted and decoded after calling ParseHeaders()
 	Subject string `json:"subject"`
 	// TLS is true if the email was received using a TLS connection
@@ -188,6 +199,43 @@ func (e *Envelope) ParseHeaders() error {
 			if subject, ok := e.Header["Subject"]; ok {
 				e.Subject = MimeHeaderDecode(subject[0])
 			}
+		}
+	} else {
+		err = errors.New("header not found")
+	}
+	return err
+}
+
+func (e *Envelope) ParseAttachments() error {
+	var err error
+	buf := e.Data.Bytes()
+
+	headerEnd := bytes.Index(buf, []byte{'\n', '\n'}) // the first two new-lines chars are the End Of Header
+	if headerEnd > -1 {
+		body := buf[headerEnd+2 : ]
+		mediaType, params, err := mime.ParseMediaType(e.Header.Get("Content-Type"))
+		if err != nil {
+			err = errors.New("error when parsing Content-Type")
+		}
+		if strings.HasPrefix(mediaType, "multipart/") {
+			attachments := bytes.Split(body, []byte("--"+params["boundary"]))
+			if len(attachments) > 0 {
+				attachments = attachments[1:len(attachments) -1]
+			}
+			for _, data := range attachments {
+				var Attachment Attachment
+				headerEnd := bytes.Index(data, []byte{'\n', '\n'}) // the first two new-lines chars are the End Of Header
+				header := data[1 : headerEnd]
+				headerReader := textproto.NewReader(bufio.NewReader(bytes.NewBuffer(header)))
+				Attachment.Header, err = headerReader.ReadMIMEHeader()
+				Attachment.Data = string(data[headerEnd+2 : ])
+				e.Attachments = append(e.Attachments, Attachment)
+			}
+		} else {
+			Attachment := Attachment {
+				Data: string(body),
+			}
+			e.Attachments = append(e.Attachments, Attachment)
 		}
 	} else {
 		err = errors.New("header not found")
